@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { Button } from '@/components/common/Button'
 import { MemoAnalyticsService } from '@/services/memoAnalyticsService'
 import { MemoStatistics } from './MemoStatistics'
-import { recordService } from '@/lib/serviceConfig'
+import { getTrainingRecordService } from '@/services/serviceConfig'
 import type { TrainingRecord } from '@/types'
 
 interface EnhancedMemoProps {
@@ -20,10 +20,15 @@ const MEMO_TEMPLATES = [
   '新しい重量に挑戦 🚀',
   'インターバルを短めに設定 ⏱️',
   '筋肉の張りを強く感じる 💪',
-  '集中力が高まっている 🔥'
+  '集中力が高まっている 🔥',
 ]
 
-export const EnhancedMemo = ({ value, onChange, placeholder = "今日の調子や気づいたことなど...", menuId }: EnhancedMemoProps) => {
+export const EnhancedMemo = ({
+  value,
+  onChange,
+  placeholder = '今日の調子や気づいたことなど...',
+  menuId,
+}: EnhancedMemoProps) => {
   const [isRecording, setIsRecording] = useState(false)
   const [showTemplates, setShowTemplates] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -38,9 +43,11 @@ export const EnhancedMemo = ({ value, onChange, placeholder = "今日の調子�
     const loadRecordsAndGenerateSuggestions = async () => {
       if (menuId) {
         try {
+          const recordService = getTrainingRecordService()
           const allRecords = await recordService.getByMenuId(menuId)
           setRecords(allRecords)
-          const generatedSuggestions = MemoAnalyticsService.generateMemoSuggestions(allRecords)
+          const generatedSuggestions =
+            MemoAnalyticsService.generateMemoSuggestions(allRecords)
           setSuggestions(generatedSuggestions)
         } catch (error) {
           console.error('レコード読み込みエラー:', error)
@@ -53,14 +60,18 @@ export const EnhancedMemo = ({ value, onChange, placeholder = "今日の調子�
 
   // 音声認識の設定
   const initSpeechRecognition = useCallback(() => {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    if (
+      !('webkitSpeechRecognition' in window) &&
+      !('SpeechRecognition' in window)
+    ) {
       alert('お使いのブラウザは音声認識に対応していません')
       return null
     }
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition
     const recognition = new SpeechRecognition()
-    
+
     recognition.lang = 'ja-JP'
     recognition.continuous = false
     recognition.interimResults = false
@@ -109,11 +120,11 @@ export const EnhancedMemo = ({ value, onChange, placeholder = "今日の調子�
     const file = event.target.files?.[0]
     if (file) {
       const reader = new FileReader()
-      reader.onload = (e) => {
+      reader.onload = e => {
         const imageDataUrl = e.target?.result as string
         const imageInfo = `📷 画像添付: ${file.name} (${Math.round(file.size / 1024)}KB)`
         onChange(value + (value ? '\n' : '') + imageInfo)
-        
+
         // 実際のアプリでは画像をクラウドストレージにアップロードし、URLを保存する
         console.log('画像データ:', imageDataUrl)
       }
@@ -229,7 +240,9 @@ export const EnhancedMemo = ({ value, onChange, placeholder = "今日の調子�
       {/* AI提案 */}
       {showSuggestions && suggestions.length > 0 && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-blue-700 mb-2">🤖 あなたの傾向から提案</h4>
+          <h4 className="text-sm font-medium text-blue-700 mb-2">
+            🤖 あなたの傾向から提案
+          </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {suggestions.map((suggestion, index) => (
               <button
@@ -254,7 +267,9 @@ export const EnhancedMemo = ({ value, onChange, placeholder = "今日の調子�
       {/* テンプレート選択 */}
       {showTemplates && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">📝 定型テンプレート</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-2">
+            📝 定型テンプレート
+          </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {MEMO_TEMPLATES.map((template, index) => (
               <button
@@ -272,7 +287,7 @@ export const EnhancedMemo = ({ value, onChange, placeholder = "今日の調子�
       {/* メインのテキストエリア */}
       <textarea
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={e => onChange(e.target.value)}
         className="input-primary w-full"
         placeholder={placeholder}
         rows={4}
@@ -289,9 +304,7 @@ export const EnhancedMemo = ({ value, onChange, placeholder = "今日の調子�
 
       {/* 文字数カウンター */}
       <div className="flex justify-between items-center text-sm text-gray-500">
-        <div>
-          {value.length > 0 && `${value.length}文字`}
-        </div>
+        <div>{value.length > 0 && `${value.length}文字`}</div>
         <div className="text-xs">
           🎤 音声入力 | 📝 テンプレート | 🤖 AI提案 | 📷 写真添付 | 📊 分析
         </div>

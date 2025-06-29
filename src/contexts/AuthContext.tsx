@@ -50,7 +50,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const login = async (input: LoginInput) => {
     try {
       const { user: loggedInUser } = await authService.login(input)
-      setUser(loggedInUser)
+      if (loggedInUser) {
+        setUser(loggedInUser)
+      }
     } catch (error) {
       throw error
     }
@@ -59,7 +61,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const register = async (input: RegisterInput) => {
     try {
       const { user: registeredUser } = await authService.register(input)
-      setUser(registeredUser)
+      if (registeredUser) {
+        setUser(registeredUser)
+      }
     } catch (error) {
       throw error
     }
