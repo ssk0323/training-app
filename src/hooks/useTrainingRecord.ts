@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
-import { menuService, recordService } from '@/lib/serviceConfig'
+import {
+  getTrainingMenuService,
+  getTrainingRecordService,
+} from '@/services/serviceConfig'
 import type {
   TrainingMenu,
   TrainingRecord,
@@ -31,6 +34,9 @@ export const useTrainingRecord = (menuId: string) => {
       try {
         setIsLoading(true)
         setError(null)
+
+        const menuService = getTrainingMenuService()
+        const recordService = getTrainingRecordService()
 
         // Load menu
         const currentMenu = await menuService.getById(menuId)
@@ -146,6 +152,7 @@ export const useTrainingRecord = (menuId: string) => {
       }
 
       console.log('保存前の前回の記録:', previousRecord)
+      const recordService = getTrainingRecordService()
       await recordService.create(input)
       setSuccess(true)
 
@@ -188,6 +195,7 @@ export const useTrainingRecord = (menuId: string) => {
 
 // 例: 最新の記録取得
 const getLatestRecord = async (menuId: string) => {
+  const recordService = getTrainingRecordService()
   const records = await recordService.getByMenuId(menuId)
   return records.length > 0 ? records[0] : null
 }

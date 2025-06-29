@@ -4,7 +4,7 @@ import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
 import { Checkbox } from '@/components/common/Checkbox'
 import { Layout } from '@/components/common/Layout'
-import { menuService } from '@/lib/serviceConfig'
+import { getTrainingMenuService } from '@/services/serviceConfig'
 import type { DayOfWeek } from '@/types'
 
 const DAY_OPTIONS: { value: DayOfWeek; label: string }[] = [
@@ -43,6 +43,7 @@ export const EditMenu = () => {
       setIsLoading(true)
       setError(null)
 
+      const menuService = getTrainingMenuService()
       const menu = await menuService.getById(menuId)
       if (!menu) {
         throw new Error('メニューが見つかりません')
@@ -89,6 +90,7 @@ export const EditMenu = () => {
       setError(null)
       setSuccess(false)
 
+      const menuService = getTrainingMenuService()
       await menuService.update(menuId!, {
         name: name.trim(),
         description: description.trim(),

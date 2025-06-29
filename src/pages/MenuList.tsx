@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/common/Button'
 import { Layout } from '@/components/common/Layout'
-import { menuService } from '@/lib/serviceConfig'
+import { getTrainingMenuService } from '@/services/serviceConfig'
 import type { TrainingMenu } from '@/types'
 
 export const MenuList = () => {
@@ -18,6 +18,7 @@ export const MenuList = () => {
     try {
       setIsLoading(true)
       setError(null)
+      const menuService = getTrainingMenuService()
       const allMenus = await menuService.getAll()
       setMenus(allMenus)
     } catch (err) {

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
-import { scheduleService } from '@/lib/serviceConfig'
+import { getTrainingMenuService } from '@/services/serviceConfig'
 import { getCurrentDayOfWeek } from '@/utils/dateUtils'
 import type { TrainingMenu, DayOfWeek } from '@/types'
 
 export const useTrainingSchedule = () => {
-  const [selectedDay, setSelectedDay] = useState<DayOfWeek>(getCurrentDayOfWeek())
+  const [selectedDay, setSelectedDay] = useState<DayOfWeek>(
+    getCurrentDayOfWeek()
+  )
   const [schedule, setSchedule] = useState<TrainingMenu[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -13,7 +15,11 @@ export const useTrainingSchedule = () => {
     try {
       setIsLoading(true)
       setError(null)
-      const daySchedule = await scheduleService.getScheduleByDay(day)
+      const menuService = getTrainingMenuService()
+      const allMenus = await menuService.getAll()
+      const daySchedule = allMenus.filter(menu =>
+        menu.scheduledDays.includes(day)
+      )
       setSchedule(daySchedule)
     } catch (err) {
       setError(err instanceof Error ? err.message : '予定の取得に失敗しました')
@@ -30,11 +36,11 @@ export const useTrainingSchedule = () => {
     setSelectedDay(day)
   }
 
-  return { 
-    selectedDay, 
-    schedule, 
-    isLoading, 
-    error, 
-    onDayChange: handleDayChange 
+  return {
+    selectedDay,
+    schedule,
+    isLoading,
+    error,
+    onDayChange: handleDayChange,
   }
 }

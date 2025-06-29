@@ -1,45 +1,61 @@
 import { useState, useEffect } from 'react'
-import { 
-  LineChart, 
-  Line, 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell
+  Cell,
 } from 'recharts'
 import { Layout } from '@/components/common/Layout'
 import { analyticsService } from '@/services/analyticsService'
-import { trainingRecordService } from '@/services/trainingRecordService'
-import { trainingMenuService } from '@/services/trainingMenuService'
-import type { 
-  WeeklyFrequency, 
-  MonthlyFrequency, 
-  ProgressData, 
-  MuscleGroupStats 
+import {
+  getTrainingRecordService,
+  getTrainingMenuService,
+} from '@/services/serviceConfig'
+import type {
+  WeeklyFrequency,
+  MonthlyFrequency,
+  ProgressData,
+  MuscleGroupStats,
 } from '@/services/analyticsService'
 import type { TrainingMenu } from '@/types'
 
-const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4']
+const COLORS = [
+  '#3b82f6',
+  '#ef4444',
+  '#10b981',
+  '#f59e0b',
+  '#8b5cf6',
+  '#ec4899',
+  '#06b6d4',
+]
 
 export const Analytics = () => {
-  const [activeTab, setActiveTab] = useState<'frequency' | 'progress' | 'muscle'>('frequency')
-  const [frequencyType, setFrequencyType] = useState<'weekly' | 'monthly'>('weekly')
+  const [activeTab, setActiveTab] = useState<
+    'frequency' | 'progress' | 'muscle'
+  >('frequency')
+  const [frequencyType, setFrequencyType] = useState<'weekly' | 'monthly'>(
+    'weekly'
+  )
   const [selectedMenuId, setSelectedMenuId] = useState<string>('')
   const [timeRange, setTimeRange] = useState<number>(90) // days
-  
+
   // Data states
-  const [frequencyData, setFrequencyData] = useState<WeeklyFrequency[] | MonthlyFrequency[]>([])
+  const [frequencyData, setFrequencyData] = useState<
+    WeeklyFrequency[] | MonthlyFrequency[]
+  >([])
   const [progressData, setProgressData] = useState<ProgressData[]>([])
   const [muscleGroupData, setMuscleGroupData] = useState<MuscleGroupStats[]>([])
   const [menus, setMenus] = useState<TrainingMenu[]>([])
-  
+
   // Loading states
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -48,7 +64,8 @@ export const Analytics = () => {
   useEffect(() => {
     const loadMenus = async () => {
       try {
-        const allMenus = await trainingMenuService.getAll()
+        const menuService = getTrainingMenuService()
+        const allMenus = await menuService.getAll()
         setMenus(allMenus)
         if (allMenus.length > 0 && !selectedMenuId) {
           setSelectedMenuId(allMenus[0].id)
@@ -69,31 +86,48 @@ export const Analytics = () => {
   const loadData = async () => {
     setIsLoading(true)
     setError(null)
-    
+
     try {
-      const records = await trainingRecordService.getAll()
-      const recentRecords = analyticsService.filterRecentRecords(records, timeRange)
-      
+      const recordService = getTrainingRecordService()
+      const menuService = getTrainingMenuService()
+
+      const records = await recordService.getAll()
+      const recentRecords = analyticsService.filterRecentRecords(
+        records,
+        timeRange
+      )
+
       switch (activeTab) {
         case 'frequency':
           if (frequencyType === 'monthly') {
-            setFrequencyData(analyticsService.calculateMonthlyFrequency(recentRecords))
+            setFrequencyData(
+              analyticsService.calculateMonthlyFrequency(recentRecords)
+            )
           } else {
-            setFrequencyData(analyticsService.calculateWeeklyFrequency(recentRecords))
+            setFrequencyData(
+              analyticsService.calculateWeeklyFrequency(recentRecords)
+            )
           }
           break
-          
+
         case 'progress':
           if (selectedMenuId) {
-            const menuRecords = await trainingRecordService.getByMenuId(selectedMenuId)
-            const recentMenuRecords = analyticsService.filterRecentRecords(menuRecords, timeRange)
-            setProgressData(analyticsService.calculateProgress(recentMenuRecords))
+            const menuRecords = await recordService.getByMenuId(selectedMenuId)
+            const recentMenuRecords = analyticsService.filterRecentRecords(
+              menuRecords,
+              timeRange
+            )
+            setProgressData(
+              analyticsService.calculateProgress(recentMenuRecords)
+            )
           }
           break
-          
+
         case 'muscle':
-          const allMenus = await trainingMenuService.getAll()
-          setMuscleGroupData(analyticsService.calculateMuscleGroupStats(recentRecords, allMenus))
+          const allMenus = await menuService.getAll()
+          setMuscleGroupData(
+            analyticsService.calculateMuscleGroupStats(recentRecords, allMenus)
+          )
           break
       }
     } catch (err) {
@@ -104,21 +138,33 @@ export const Analytics = () => {
     }
   }
 
-  const formatFrequencyData = (data: WeeklyFrequency[] | MonthlyFrequency[]) => {
+  const formatFrequencyData = (
+    data: WeeklyFrequency[] | MonthlyFrequency[]
+  ) => {
     return data.map(item => ({
       ...item,
       period: 'week' in item ? item.week : item.month,
-      label: 'week' in item 
-        ? new Date(item.week).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })
-        : new Date(item.month + '-01').toLocaleDateString('ja-JP', { year: 'numeric', month: 'short' })
+      label:
+        'week' in item
+          ? new Date(item.week).toLocaleDateString('ja-JP', {
+              month: 'short',
+              day: 'numeric',
+            })
+          : new Date(item.month + '-01').toLocaleDateString('ja-JP', {
+              year: 'numeric',
+              month: 'short',
+            }),
     }))
   }
 
   const formatProgressData = (data: ProgressData[]) => {
     return data.map(item => ({
       ...item,
-      label: new Date(item.date).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' }),
-      volume: Math.round(item.volume)
+      label: new Date(item.date).toLocaleDateString('ja-JP', {
+        month: 'short',
+        day: 'numeric',
+      }),
+      volume: Math.round(item.volume),
     }))
   }
 
@@ -142,7 +188,7 @@ export const Analytics = () => {
               {[
                 { key: 'frequency', label: 'トレーニング頻度' },
                 { key: 'progress', label: '進捗チャート' },
-                { key: 'muscle', label: '筋肉部位別統計' }
+                { key: 'muscle', label: '筋肉部位別統計' },
               ].map(tab => (
                 <button
                   key={tab.key}
@@ -170,7 +216,7 @@ export const Analytics = () => {
               </label>
               <select
                 value={timeRange}
-                onChange={(e) => setTimeRange(Number(e.target.value))}
+                onChange={e => setTimeRange(Number(e.target.value))}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
               >
                 <option value={30}>過去30日</option>
@@ -188,7 +234,9 @@ export const Analytics = () => {
                 </label>
                 <select
                   value={frequencyType}
-                  onChange={(e) => setFrequencyType(e.target.value as 'weekly' | 'monthly')}
+                  onChange={e =>
+                    setFrequencyType(e.target.value as 'weekly' | 'monthly')
+                  }
                   className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
                 >
                   <option value="weekly">週間</option>
@@ -205,7 +253,7 @@ export const Analytics = () => {
                 </label>
                 <select
                   value={selectedMenuId}
-                  onChange={(e) => setSelectedMenuId(e.target.value)}
+                  onChange={e => setSelectedMenuId(e.target.value)}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
                 >
                   {menus.map(menu => (
@@ -238,7 +286,9 @@ export const Analytics = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="label" />
                   <YAxis />
-                  <Tooltip formatter={(value) => [`${value}回`, 'トレーニング回数']} />
+                  <Tooltip
+                    formatter={value => [`${value}回`, 'トレーニング回数']}
+                  />
                   <Bar dataKey="count" fill="#3b82f6" />
                 </BarChart>
               </ResponsiveContainer>
@@ -259,19 +309,19 @@ export const Analytics = () => {
                     <YAxis yAxisId="volume" orientation="right" />
                     <Tooltip />
                     <Legend />
-                    <Line 
+                    <Line
                       yAxisId="weight"
-                      type="monotone" 
-                      dataKey="maxWeight" 
-                      stroke="#ef4444" 
-                      name="最大重量 (kg)" 
+                      type="monotone"
+                      dataKey="maxWeight"
+                      stroke="#ef4444"
+                      name="最大重量 (kg)"
                     />
-                    <Line 
+                    <Line
                       yAxisId="volume"
-                      type="monotone" 
-                      dataKey="volume" 
-                      stroke="#10b981" 
-                      name="ボリューム (kg)" 
+                      type="monotone"
+                      dataKey="volume"
+                      stroke="#10b981"
+                      name="ボリューム (kg)"
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -297,7 +347,7 @@ export const Analytics = () => {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={(entry: any) => 
+                        label={(entry: any) =>
                           `${entry.muscleGroup} ${entry.percent ? (entry.percent * 100).toFixed(0) : 0}%`
                         }
                         outerRadius={80}
@@ -305,7 +355,10 @@ export const Analytics = () => {
                         dataKey="totalSessions"
                       >
                         {muscleGroupData.map((entry, index) => (
-                          <Cell key={`cell-${entry.muscleGroup}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell
+                            key={`cell-${entry.muscleGroup}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
                         ))}
                       </Pie>
                       <Tooltip />
@@ -332,7 +385,7 @@ export const Analytics = () => {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {muscleGroupData.map((stat) => (
+                        {muscleGroupData.map(stat => (
                           <tr key={stat.muscleGroup}>
                             <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
                               {stat.muscleGroup}

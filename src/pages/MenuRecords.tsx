@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Button } from '@/components/common/Button'
 import { Layout } from '@/components/common/Layout'
-import { menuService, recordService } from '@/lib/serviceConfig'
+import {
+  getTrainingMenuService,
+  getTrainingRecordService,
+} from '@/services/serviceConfig'
 import type { TrainingMenu, TrainingRecord } from '@/types'
 
 export const MenuRecords = () => {
@@ -24,6 +27,9 @@ export const MenuRecords = () => {
     try {
       setIsLoading(true)
       setError(null)
+
+      const menuService = getTrainingMenuService()
+      const recordService = getTrainingRecordService()
 
       // Load menu and records in parallel
       const [menuData, recordsData] = await Promise.all([

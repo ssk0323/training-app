@@ -28,3 +28,29 @@ export interface PaginatedResponse<T> {
     hasPrev: boolean
   }
 }
+
+// 認証関連の型定義
+export interface User {
+  id: string
+  email: string
+  name: string
+  createdAt: string
+}
+
+export interface LoginInput {
+  email: string
+  password: string
+}
+
+export interface RegisterInput {
+  email: string
+  name: string
+  password: string
+}
+
+export interface AuthResponse {
+  success: boolean
+  user?: User
+  token?: string
+  error?: string
+}

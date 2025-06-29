@@ -7,8 +7,6 @@ import {
 } from 'react'
 import type { User, LoginInput, RegisterInput } from '@/types'
 import { authService } from '@/services/authService'
-import { trainingMenuService } from '@/services/trainingMenuService'
-import { trainingRecordService } from '@/services/trainingRecordService'
 
 interface AuthContextType {
   user: User | null
@@ -40,9 +38,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const currentUser = await authService.getCurrentUser()
       if (currentUser) {
         setUser(currentUser)
-        // メニューサービスのユーザーを設定
-        trainingMenuService.setCurrentUser(currentUser.id)
-        trainingRecordService.setCurrentUser(currentUser.id)
       }
     } catch (error) {
       console.error('Failed to initialize auth:', error)
@@ -56,9 +51,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const { user: loggedInUser } = await authService.login(input)
       setUser(loggedInUser)
-      // メニューサービスのユーザーを設定
-      trainingMenuService.setCurrentUser(loggedInUser.id)
-      trainingRecordService.setCurrentUser(loggedInUser.id)
     } catch (error) {
       throw error
     }
@@ -68,9 +60,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const { user: registeredUser } = await authService.register(input)
       setUser(registeredUser)
-      // メニューサービスのユーザーを設定
-      trainingMenuService.setCurrentUser(registeredUser.id)
-      trainingRecordService.setCurrentUser(registeredUser.id)
     } catch (error) {
       throw error
     }
@@ -79,9 +68,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const logout = () => {
     authService.logout()
     setUser(null)
-    // メニューサービスのユーザーをクリア
-    trainingMenuService.clearUser()
-    trainingRecordService.clearUser()
   }
 
   const refreshToken = async () => {
