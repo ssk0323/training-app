@@ -12,6 +12,13 @@ import { Login } from './pages/Login'
 import { Register } from './pages/Register'
 
 function App() {
+  // 環境変数の確認（本番環境でのデバッグ用）
+  console.log('=== Environment Variables ===')
+  console.log('API Base URL:', import.meta.env.VITE_API_BASE_URL)
+  console.log('App Name:', import.meta.env.VITE_APP_NAME)
+  console.log('Mode:', import.meta.env.MODE)
+  console.log('============================')
+
   return (
     <AuthProvider>
       <Router>
