@@ -1,9 +1,20 @@
 import { apiClient } from '@/lib/api'
-import type { TrainingMenu, CreateTrainingMenuInput } from '@/types'
+import type {
+  TrainingMenu,
+  CreateTrainingMenuInput,
+  UpdateTrainingMenuInput,
+} from '@/types'
 
 class ApiTrainingMenuService {
   async create(input: CreateTrainingMenuInput): Promise<TrainingMenu> {
     return apiClient.createMenu(input)
+  }
+
+  async update(
+    id: string,
+    input: UpdateTrainingMenuInput
+  ): Promise<TrainingMenu> {
+    return apiClient.updateMenu(id, input)
   }
 
   async getAll(): Promise<TrainingMenu[]> {

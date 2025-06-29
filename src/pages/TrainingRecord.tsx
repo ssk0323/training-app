@@ -3,11 +3,13 @@ import { Button } from '@/components/common/Button'
 import { Layout } from '@/components/common/Layout'
 import { PreviousRecord } from '@/components/features/PreviousRecord'
 import { SetInput } from '@/components/features/SetInput'
+import { TrainingTimer } from '@/components/features/TrainingTimer'
+import { EnhancedMemo } from '@/components/features/EnhancedMemo'
 import { useTrainingRecord } from '@/hooks/useTrainingRecord'
 
 export const TrainingRecord = () => {
   const { menuId } = useParams<{ menuId: string }>()
-  
+
   const {
     menu,
     previousRecord,
@@ -23,6 +25,7 @@ export const TrainingRecord = () => {
     setComment,
     copyPreviousRecord,
     saveRecord,
+    setTotalTrainingTime,
   } = useTrainingRecord(menuId!)
 
   if (isLoading) {
@@ -48,81 +51,80 @@ export const TrainingRecord = () => {
   return (
     <Layout title={menu.name} subtitle={menu.description} showBackButton>
       <div className="max-w-4xl mx-auto px-4 py-6 sm:px-0 space-y-6">
-          {/* Previous Record */}
-          <PreviousRecord 
-            record={previousRecord} 
-            onCopy={previousRecord ? copyPreviousRecord : undefined}
-          />
+        {/* Previous Record */}
+        <PreviousRecord
+          record={previousRecord}
+          onCopy={previousRecord ? copyPreviousRecord : undefined}
+        />
 
-          {/* Training Record Form */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">
-              今日のトレーニング
-            </h2>
+        {/* Training Timer */}
+        <TrainingTimer onTotalTimeUpdate={setTotalTrainingTime} />
 
-            {/* Sets */}
-            <div className="space-y-4 mb-6">
-              {sets.map((set, index) => (
-                <SetInput
-                  key={index}
-                  setNumber={index + 1}
-                  weight={set.weight}
-                  reps={set.reps}
-                  duration={set.duration}
-                  restTime={set.restTime}
-                  onWeightChange={(value) => updateSet(index, 'weight', value)}
-                  onRepsChange={(value) => updateSet(index, 'reps', value)}
-                  onDurationChange={(value) => updateSet(index, 'duration', value)}
-                  onRestTimeChange={(value) => updateSet(index, 'restTime', value)}
-                  onRemove={() => removeSet(index)}
-                  canRemove={sets.length > 1}
-                />
-              ))}
-            </div>
+        {/* Training Record Form */}
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">
+            今日のトレーニング
+          </h2>
 
-            {/* Add Set Button */}
-            <div className="mb-6">
-              <Button variant="secondary" onClick={addSet}>
-                セット追加
-              </Button>
-            </div>
-
-            {/* Comment */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                コメント
-              </label>
-              <textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                className="input-primary w-full"
-                placeholder="今日の調子や気づいたことなど..."
-                rows={3}
+          {/* Sets */}
+          <div className="space-y-4 mb-6">
+            {sets.map((set, index) => (
+              <SetInput
+                key={index}
+                setNumber={index + 1}
+                weight={set.weight}
+                reps={set.reps}
+                duration={set.duration}
+                restTime={set.restTime}
+                onWeightChange={value => updateSet(index, 'weight', value)}
+                onRepsChange={value => updateSet(index, 'reps', value)}
+                onDurationChange={value => updateSet(index, 'duration', value)}
+                onRestTimeChange={value => updateSet(index, 'restTime', value)}
+                onRemove={() => removeSet(index)}
+                canRemove={sets.length > 1}
               />
-            </div>
+            ))}
+          </div>
 
-            {/* Error Message */}
-            {error && (
-              <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-4">
-                <div className="text-red-800">{error}</div>
-              </div>
-            )}
-
-            {/* Success Message */}
-            {success && (
-              <div className="mb-4 bg-green-50 border border-green-200 rounded-md p-4">
-                <div className="text-green-800">記録を保存しました</div>
-              </div>
-            )}
-
-            {/* Submit Button */}
-            <Button
-              onClick={saveRecord}
-              isLoading={isSaving}
-              className="w-full sm:w-auto"
-            >
-              記録する
+          {/* Add Set Button */}
+          <div className="mb-6">
+            <Button variant="secondary" onClick={addSet}>
+              セット追加
             </Button>
+          </div>
+
+          {/* Enhanced Memo */}
+          <div className="mb-6">
+            <EnhancedMemo
+              value={comment}
+              onChange={setComment}
+              placeholder="今日の調子や気づいたことなど..."
+              menuId={menuId}
+            />
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-4">
+              <div className="text-red-800">{error}</div>
+            </div>
+          )}
+
+          {/* Success Message */}
+          {success && (
+            <div className="mb-4 bg-green-50 border border-green-200 rounded-md p-4">
+              <div className="text-green-800">記録を保存しました</div>
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <Button
+            onClick={saveRecord}
+            isLoading={isSaving}
+            className="w-full sm:w-auto"
+          >
+            記録する
+          </Button>
         </div>
       </div>
     </Layout>

@@ -1,15 +1,49 @@
-import type { TrainingRecord, CreateTrainingRecordInput, UpdateTrainingRecordInput } from '@/types'
+import type {
+  TrainingRecord,
+  CreateTrainingRecordInput,
+  UpdateTrainingRecordInput,
+} from '@/types'
 import type { DatabaseAdapter } from '@/lib/database'
 import { TrainingRecordDatabase } from './database/trainingRecordDatabase'
 
 class TrainingRecordService {
   private database: TrainingRecordDatabase | null = null
-  
-  // Fallback in-memory storage
   private records: TrainingRecord[] = []
+  private currentUserId: string | null = null
 
-  setDatabase(db: DatabaseAdapter) {
-    this.database = new TrainingRecordDatabase(db)
+  constructor() {
+    // データベースが利用可能かチェック
+    if (typeof window !== 'undefined' && 'D1Database' in window) {
+      // データベースアダプターが必要なので、現在は使用しない
+      // this.database = new TrainingRecordDatabase()
+    }
+  }
+
+  // ユーザーIDを設定
+  setCurrentUser(userId: string) {
+    this.currentUserId = userId
+    this.loadUserRecords()
+  }
+
+  // ユーザー別の記録を読み込み
+  private loadUserRecords() {
+    if (!this.currentUserId) return
+
+    const storageKey = `training_records_${this.currentUserId}`
+    const savedRecords = localStorage.getItem(storageKey)
+    if (savedRecords) {
+      this.records = JSON.parse(savedRecords)
+    } else {
+      this.records = []
+    }
+  }
+
+  // ユーザー別の記録を保存
+  private saveUserRecords() {
+    if (!this.currentUserId) return
+
+    const storageKey = `training_records_${this.currentUserId}`
+    localStorage.setItem(storageKey, JSON.stringify(this.records))
   }
 
   async create(input: CreateTrainingRecordInput): Promise<TrainingRecord> {
@@ -18,18 +52,12 @@ class TrainingRecordService {
     }
 
     // Fallback to in-memory implementation
-    if (input.sets.length === 0) {
-      throw new Error('セット数は1つ以上入力してください')
+    if (!input.menuId) {
+      throw new Error('メニューIDは必須です')
     }
 
-    // Validate sets
-    for (const set of input.sets) {
-      if (set.weight <= 0) {
-        throw new Error('重量は0より大きい値を入力してください')
-      }
-      if (set.reps <= 0) {
-        throw new Error('回数は0より大きい値を入力してください')
-      }
+    if (!input.sets || input.sets.length === 0) {
+      throw new Error('セット情報は必須です')
     }
 
     const now = new Date().toISOString()
@@ -38,18 +66,71 @@ class TrainingRecordService {
     const record: TrainingRecord = {
       id,
       menuId: input.menuId,
-      date: input.date,
-      sets: input.sets.map((set) => ({
+      sets: input.sets.map(set => ({
         id: crypto.randomUUID(),
         ...set,
       })),
       comment: input.comment,
+      date: input.date,
       createdAt: now,
       updatedAt: now,
     }
 
     this.records.push(record)
+    this.saveUserRecords()
     return record
+  }
+
+  async update(input: UpdateTrainingRecordInput): Promise<TrainingRecord> {
+    if (this.database) {
+      return this.database.update(input)
+    }
+
+    // Fallback to in-memory implementation
+    const recordIndex = this.records.findIndex(record => record.id === input.id)
+    if (recordIndex === -1) {
+      throw new Error('記録が見つかりません')
+    }
+
+    const now = new Date().toISOString()
+    const updatedRecord: TrainingRecord = {
+      ...this.records[recordIndex],
+      sets: input.sets
+        ? input.sets.map(set => ({
+            id: crypto.randomUUID(),
+            ...set,
+          }))
+        : this.records[recordIndex].sets,
+      comment:
+        input.comment !== undefined
+          ? input.comment
+          : this.records[recordIndex].comment,
+      updatedAt: now,
+    }
+
+    this.records[recordIndex] = updatedRecord
+    this.saveUserRecords()
+    return updatedRecord
+  }
+
+  async getAll(): Promise<TrainingRecord[]> {
+    if (this.database) {
+      return this.database.getAll()
+    }
+
+    // Fallback to in-memory implementation
+    return [...this.records].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    )
+  }
+
+  async getById(id: string): Promise<TrainingRecord | null> {
+    if (this.database) {
+      return this.database.getById(id)
+    }
+
+    // Fallback to in-memory implementation
+    return this.records.find(record => record.id === id) || null
   }
 
   async getByMenuId(menuId: string): Promise<TrainingRecord[]> {
@@ -63,52 +144,25 @@ class TrainingRecordService {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }
 
-  async getLatestByMenuId(menuId: string): Promise<TrainingRecord | null> {
-    if (this.database) {
-      return this.database.getLatestByMenuId(menuId)
-    }
-
-    // Fallback to in-memory implementation
-    const records = await this.getByMenuId(menuId)
-    return records[0] || null
-  }
-
-  async getAll(): Promise<TrainingRecord[]> {
-    if (this.database) {
-      return this.database.getAll()
-    }
-
-    // Fallback to in-memory implementation
-    return [...this.records].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  }
-
-  async update(input: UpdateTrainingRecordInput): Promise<TrainingRecord> {
-    const recordIndex = this.records.findIndex(r => r.id === input.id)
-    if (recordIndex === -1) {
-      throw new Error('記録が見つかりません')
-    }
-
-    const existingRecord = this.records[recordIndex]
-    const updatedRecord: TrainingRecord = {
-      ...existingRecord,
-      sets: input.sets ? input.sets.map((set) => ({
-        id: crypto.randomUUID(),
-        ...set,
-      })) : existingRecord.sets,
-      comment: input.comment !== undefined ? input.comment : existingRecord.comment,
-      updatedAt: new Date().toISOString(),
-    }
-
-    this.records[recordIndex] = updatedRecord
-    return updatedRecord
-  }
-
   async delete(id: string): Promise<void> {
-    const recordIndex = this.records.findIndex(r => r.id === id)
+    if (this.database) {
+      return this.database.delete(id)
+    }
+
+    // Fallback to in-memory implementation
+    const recordIndex = this.records.findIndex(record => record.id === id)
     if (recordIndex === -1) {
       throw new Error('記録が見つかりません')
     }
+
     this.records.splice(recordIndex, 1)
+    this.saveUserRecords()
+  }
+
+  // ユーザーをクリア（ログアウト時）
+  clearUser() {
+    this.currentUserId = null
+    this.records = []
   }
 }
 

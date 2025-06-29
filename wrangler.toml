@@ -14,7 +14,7 @@ name = "training-record-app-prod"
 [[d1_databases]]
 binding = "DB"
 database_name = "training-app-db"
-database_id = ""
+database_id = "a8ae81fc-95bc-45df-bae0-1d2daf26f656"
 migrations_dir = "migrations"
 
 [vars]

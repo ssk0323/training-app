@@ -1,5 +1,10 @@
 import type { DatabaseAdapter } from '@/lib/database'
-import type { TrainingRecord, CreateTrainingRecordInput, UpdateTrainingRecordInput, TrainingSet } from '@/types'
+import type {
+  TrainingRecord,
+  CreateTrainingRecordInput,
+  UpdateTrainingRecordInput,
+  TrainingSet,
+} from '@/types'
 
 interface TrainingRecordRow {
   id: string
@@ -23,9 +28,11 @@ interface TrainingSetRow {
 export class TrainingRecordDatabase {
   constructor(private db: DatabaseAdapter) {}
 
-  private async mapRowToRecord(row: TrainingRecordRow): Promise<TrainingRecord> {
+  private async mapRowToRecord(
+    row: TrainingRecordRow
+  ): Promise<TrainingRecord> {
     const sets = await this.getSetsByRecordId(row.id)
-    
+
     return {
       id: row.id,
       menuId: row.menu_id,
@@ -38,9 +45,10 @@ export class TrainingRecordDatabase {
   }
 
   private async getSetsByRecordId(recordId: string): Promise<TrainingSet[]> {
-    const sql = 'SELECT * FROM training_sets WHERE record_id = ? ORDER BY set_order'
+    const sql =
+      'SELECT * FROM training_sets WHERE record_id = ? ORDER BY set_order'
     const rows = await this.db.query<TrainingSetRow>(sql, [recordId])
-    
+
     return rows.map(row => ({
       id: row.id,
       weight: row.weight,
@@ -75,7 +83,14 @@ export class TrainingRecordDatabase {
     statements.push({
       sql: `INSERT INTO training_records (id, menu_id, date, comment, created_at, updated_at) 
             VALUES (?, ?, ?, ?, ?, ?)`,
-      params: [recordId, input.menuId, input.date, input.comment || null, now, now],
+      params: [
+        recordId,
+        input.menuId,
+        input.date,
+        input.comment || null,
+        now,
+        now,
+      ],
     })
 
     // Insert training sets
@@ -97,7 +112,7 @@ export class TrainingRecordDatabase {
     })
 
     const results = await this.db.batch(statements)
-    
+
     if (!results.every(result => result.success)) {
       throw new Error('記録の作成に失敗しました')
     }
@@ -117,9 +132,10 @@ export class TrainingRecordDatabase {
   }
 
   async getByMenuId(menuId: string): Promise<TrainingRecord[]> {
-    const sql = 'SELECT * FROM training_records WHERE menu_id = ? ORDER BY date DESC'
+    const sql =
+      'SELECT * FROM training_records WHERE menu_id = ? ORDER BY date DESC, created_at DESC'
     const rows = await this.db.query<TrainingRecordRow>(sql, [menuId])
-    
+
     const records = []
     for (const row of rows) {
       records.push(await this.mapRowToRecord(row))
@@ -128,15 +144,17 @@ export class TrainingRecordDatabase {
   }
 
   async getLatestByMenuId(menuId: string): Promise<TrainingRecord | null> {
-    const sql = 'SELECT * FROM training_records WHERE menu_id = ? ORDER BY date DESC LIMIT 1'
+    const sql =
+      'SELECT * FROM training_records WHERE menu_id = ? ORDER BY date DESC, created_at DESC LIMIT 1'
     const row = await this.db.first<TrainingRecordRow>(sql, [menuId])
     return row ? this.mapRowToRecord(row) : null
   }
 
   async getAll(): Promise<TrainingRecord[]> {
-    const sql = 'SELECT * FROM training_records ORDER BY date DESC'
+    const sql =
+      'SELECT * FROM training_records ORDER BY date DESC, created_at DESC'
     const rows = await this.db.query<TrainingRecordRow>(sql)
-    
+
     const records = []
     for (const row of rows) {
       records.push(await this.mapRowToRecord(row))
@@ -197,7 +215,7 @@ export class TrainingRecordDatabase {
     }
 
     const results = await this.db.batch(statements)
-    
+
     if (!results.every(result => result.success)) {
       throw new Error('記録の更新に失敗しました')
     }
@@ -214,7 +232,7 @@ export class TrainingRecordDatabase {
     // Sets will be deleted automatically due to CASCADE
     const sql = 'DELETE FROM training_records WHERE id = ?'
     const result = await this.db.run(sql, [id])
-    
+
     if (!result.success) {
       throw new Error('記録の削除に失敗しました')
     }
