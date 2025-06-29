@@ -4,35 +4,36 @@ import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
 import { Layout } from '@/components/common/Layout'
 import { useAuth } from '@/contexts/AuthContext'
+import { authService } from '@/services/authService'
 
 export const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const { login } = useAuth()
+  const [error, setError] = useState('')
   const navigate = useNavigate()
+  const { login } = useAuth()
+
+  const demoAccounts = authService.getDemoAccounts()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!email.trim() || !password.trim()) {
-      setError('メールアドレスとパスワードを入力してください')
-      return
-    }
+    setIsLoading(true)
+    setError('')
 
     try {
-      setIsLoading(true)
-      setError(null)
-
-      await login({ email: email.trim(), password })
+      await login({ email, password })
       navigate('/')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ログインに失敗しました')
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleDemoLogin = (demoEmail: string, demoPassword: string) => {
+    setEmail(demoEmail)
+    setPassword(demoPassword)
   }
 
   return (
@@ -93,6 +94,48 @@ export const Login = () => {
               </p>
             </div>
           </form>
+
+          {/* デモアカウントセクション */}
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">
+                  デモアカウント
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              <p className="text-xs text-gray-500 text-center">
+                以下のアカウントでログインできます（デバイス間で共有可能）
+              </p>
+              {demoAccounts.map((account, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
+                >
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-gray-900">
+                      {account.name}
+                    </div>
+                    <div className="text-xs text-gray-500">{account.email}</div>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() =>
+                      handleDemoLogin(account.email, account.password)
+                    }
+                    className="ml-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  >
+                    使用
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </Layout>

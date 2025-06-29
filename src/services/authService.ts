@@ -11,6 +11,26 @@ interface UserCredentials {
   createdAt: string
 }
 
+// デモアカウントの定義
+const DEMO_ACCOUNTS = [
+  { email: 'demo@example.com', password: 'DemoPass123', name: 'デモユーザー1' },
+  {
+    email: 'demo2@example.com',
+    password: 'DemoPass123',
+    name: 'デモユーザー2',
+  },
+  {
+    email: 'demo3@example.com',
+    password: 'DemoPass123',
+    name: 'デモユーザー3',
+  },
+  {
+    email: 'test@example.com',
+    password: 'TestPass123',
+    name: 'テストユーザー',
+  },
+]
+
 class AuthService {
   private readonly JWT_SECRET =
     import.meta.env.VITE_JWT_SECRET || 'fallback-secret-key'
@@ -134,6 +154,30 @@ class AuthService {
     localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users))
   }
 
+  // デモアカウントかどうかをチェック
+  private isDemoAccount(
+    email: string,
+    password: string
+  ): { isDemo: boolean; user?: User } {
+    const demoAccount = DEMO_ACCOUNTS.find(
+      account => account.email === email && account.password === password
+    )
+
+    if (demoAccount) {
+      return {
+        isDemo: true,
+        user: {
+          id: `demo-${demoAccount.email}`,
+          email: demoAccount.email,
+          name: demoAccount.name,
+          createdAt: new Date().toISOString(),
+        },
+      }
+    }
+
+    return { isDemo: false }
+  }
+
   async register(input: RegisterInput): Promise<AuthResponse> {
     if (!this.isBrowser()) {
       throw new Error('ブラウザ環境でのみ利用可能です')
@@ -189,20 +233,10 @@ class AuthService {
     }
 
     // デモアカウントの処理
-    if (
-      input.email === 'demo@example.com' &&
-      input.password === 'DemoPass123'
-    ) {
-      const demoUser: User = {
-        id: 'demo-user-id',
-        email: 'demo@example.com',
-        name: 'デモユーザー',
-        createdAt: new Date().toISOString(),
-      }
-
-      const token = await this.generateToken(demoUser)
-
-      return { user: demoUser, token }
+    const demoCheck = this.isDemoAccount(input.email, input.password)
+    if (demoCheck.isDemo && demoCheck.user) {
+      const token = await this.generateToken(demoCheck.user)
+      return { user: demoCheck.user, token }
     }
 
     // ユーザー検索
@@ -254,7 +288,21 @@ class AuthService {
       const users = this.getUsers()
       const userData = users.find(user => user.id === payload.sub)
 
-      if (!userData) return null
+      if (!userData) {
+        // デモアカウントの場合は直接返す
+        const demoAccount = DEMO_ACCOUNTS.find(
+          account => `demo-${account.email}` === payload.sub
+        )
+        if (demoAccount) {
+          return {
+            id: `demo-${demoAccount.email}`,
+            email: demoAccount.email,
+            name: demoAccount.name,
+            createdAt: new Date().toISOString(),
+          }
+        }
+        return null
+      }
 
       return {
         id: userData.id,
@@ -381,6 +429,11 @@ class AuthService {
     }
     const token = this.getStoredToken()
     return token ? { Authorization: `Bearer ${token}` } : {}
+  }
+
+  // デモアカウント一覧を取得
+  getDemoAccounts(): Array<{ email: string; password: string; name: string }> {
+    return DEMO_ACCOUNTS
   }
 }
 
