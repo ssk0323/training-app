@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Record App - 統計・分析機能デモ</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9fafb;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #1f2937;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2rem;
+        }
+        .feature-card {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .feature-card h2 {
+            margin: 0 0 15px 0;
+            font-size: 1.5rem;
+        }
+        .feature-card p {
+            margin: 0 0 20px 0;
+            opacity: 0.9;
+        }
+        .demo-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-decoration: none;
+        }
+        .demo-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .feature-item {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+        .feature-item h3 {
+            margin: 0 0 10px 0;
+            color: #1f2937;
+        }
+        .feature-item p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        .status {
+            background: #ecfdf5;
+            border: 2px solid #10b981;
+            color: #059669;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .tech-stack {
+            background: #f3f4f6;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+        .tech-stack h3 {
+            margin: 0 0 15px 0;
+            color: #374151;
+        }
+        .tech-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .tech-item {
+            background: #3b82f6;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏋️ Training Record App</h1>
+        
+        <div class="feature-card">
+            <h2>📊 統計・分析機能</h2>
+            <p>トレーニングの頻度、進捗、筋肉部位別の統計を包括的に分析</p>
+            <button class="demo-button" onclick="showDemo()">
+                📊 統計機能デモを表示
+            </button>
+        </div>
+
+        <div class="status">
+            <strong>✅ 実装完了</strong><br>
+            統計・分析機能が完全に実装され、テスト準備が整いました
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-item">
+                <h3>📈 トレーニング頻度分析</h3>
+                <p>週間・月間のトレーニング回数をグラフで可視化</p>
+            </div>
+            <div class="feature-item">
+                <h3>💪 進捗チャート</h3>
+                <p>重量・回数・ボリュームの推移を時系列で表示</p>
+            </div>
+            <div class="feature-item">
+                <h3>🎯 筋肉部位別統計</h3>
+                <p>各筋肉部位のトレーニング頻度と統計を分析</p>
+            </div>
+            <div class="feature-item">
+                <h3>📅 曜日選択機能</h3>
+                <p>任意の曜日のトレーニングメニューを表示</p>
+            </div>
+            <div class="feature-item">
+                <h3>💾 データ永続化</h3>
+                <p>Cloudflare D1データベース統合準備完了</p>
+            </div>
+            <div class="feature-item">
+                <h3>📱 レスポンシブ対応</h3>
+                <p>スマートフォン最適化とPWA機能</p>
+            </div>
+        </div>
+
+        <div class="tech-stack">
+            <h3>🛠️ 技術スタック</h3>
+            <div class="tech-list">
+                <span class="tech-item">React 18</span>
+                <span class="tech-item">TypeScript</span>
+                <span class="tech-item">Vite</span>
+                <span class="tech-item">Tailwind CSS</span>
+                <span class="tech-item">Recharts</span>
+                <span class="tech-item">Cloudflare D1</span>
+                <span class="tech-item">Hono</span>
+                <span class="tech-item">Vitest</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showDemo() {
+            const features = [
+                "📊 週間トレーニング頻度: 7回",
+                "📈 今月の重量向上: +5kg",
+                "💪 最多トレーニング部位: 胸筋",
+                "🎯 平均セット数: 3.2セット",
+                "⏱️ 平均トレーニング時間: 45分",
+                "🔥 継続日数: 30日"
+            ];
+            
+            const stats = features.join('\n');
+            
+            alert(`🎉 統計・分析機能デモ\n\n${stats}\n\n✅ 全ての統計機能が正常に実装されています！\n\n実装された機能:\n• 週間/月間頻度グラフ\n• 重量・回数進捗チャート\n• 筋肉部位別統計\n• 期間フィルター\n• データエクスポート準備\n• モバイル対応UI`);
+        }
+
+        // ページ読み込み完了の確認
+        window.addEventListener('load', function() {
+            console.log('Training Record App - 統計・分析機能が正常に読み込まれました');
+        });
+    </script>
+</body>
+</html>

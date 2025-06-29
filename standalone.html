@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Record App - 日曜日選択テスト</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 20px; background: #f9fafb; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .day-selector { margin-bottom: 24px; }
+        .day-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; margin-top: 12px; }
+        .day-button { padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 6px; background: #f9fafb; cursor: pointer; text-align: center; font-size: 14px; transition: all 0.2s; }
+        .day-button:hover { background: #f3f4f6; }
+        .day-button.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+        .schedule-list { margin-top: 20px; }
+        .menu-item { padding: 16px; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 12px; background: #fafafa; }
+        .menu-name { font-weight: bold; font-size: 16px; margin-bottom: 4px; }
+        .menu-description { color: #6b7280; font-size: 14px; }
+        .empty-state { text-align: center; color: #6b7280; padding: 40px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // サンプルデータ
+        const sampleMenus = [
+            { id: '1', name: 'ベンチプレス', description: '胸筋を鍛えるメニュー', scheduledDays: ['monday', 'wednesday', 'friday'] },
+            { id: '2', name: 'スクワット', description: '脚を鍛えるメニュー', scheduledDays: ['tuesday', 'thursday', 'saturday'] },
+            { id: '3', name: 'デッドリフト', description: '背中を鍛えるメニュー', scheduledDays: ['monday', 'friday'] },
+            { id: '4', name: 'ショルダープレス', description: '肩を鍛えるメニュー', scheduledDays: ['wednesday', 'sunday'] }
+        ];
+
+        const dayOptions = [
+            { value: 'monday', label: '月曜日' },
+            { value: 'tuesday', label: '火曜日' },
+            { value: 'wednesday', label: '水曜日' },
+            { value: 'thursday', label: '木曜日' },
+            { value: 'friday', label: '金曜日' },
+            { value: 'saturday', label: '土曜日' },
+            { value: 'sunday', label: '日曜日' }
+        ];
+
+        function App() {
+            const [selectedDay, setSelectedDay] = useState('monday');
+
+            const getScheduleByDay = (day) => {
+                return sampleMenus.filter(menu => menu.scheduledDays.includes(day));
+            };
+
+            const schedule = getScheduleByDay(selectedDay);
+
+            return (
+                <div className="container">
+                    <h1 style={{marginBottom: '24px', fontSize: '24px', fontWeight: 'bold'}}>
+                        トレーニング予定
+                    </h1>
+                    
+                    <div className="day-selector">
+                        <label style={{display: 'block', fontWeight: '500', marginBottom: '12px'}}>
+                            曜日を選択
+                        </label>
+                        <div className="day-grid">
+                            {dayOptions.map(({ value, label }) => (
+                                <button
+                                    key={value}
+                                    className={`day-button ${selectedDay === value ? 'active' : ''}`}
+                                    onClick={() => setSelectedDay(value)}
+                                >
+                                    {label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="schedule-list">
+                        <h2 style={{fontSize: '18px', fontWeight: '600', marginBottom: '16px'}}>
+                            {dayOptions.find(d => d.value === selectedDay)?.label}のメニュー
+                        </h2>
+                        
+                        {schedule.length > 0 ? (
+                            schedule.map(menu => (
+                                <div key={menu.id} className="menu-item">
+                                    <div className="menu-name">{menu.name}</div>
+                                    <div className="menu-description">{menu.description}</div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="empty-state">
+                                この日は予定されているトレーニングがありません
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
