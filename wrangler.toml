@@ -1,4 +1,4 @@
-name = "training-record-app"
+name = "training-app"
 main = "functions/index.ts"
 compatibility_date = "2024-01-01"
 
