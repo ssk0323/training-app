@@ -19,6 +19,11 @@ class TrainingRecordService {
     }
   }
 
+  // データベースを設定（Workers側用）
+  setDatabase(db: DatabaseAdapter) {
+    this.database = new TrainingRecordDatabase(db)
+  }
+
   // ユーザーIDを設定
   setCurrentUser(userId: string) {
     this.currentUserId = userId

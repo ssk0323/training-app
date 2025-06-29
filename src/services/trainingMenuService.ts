@@ -19,6 +19,11 @@ class TrainingMenuService {
     }
   }
 
+  // データベースを設定（Workers側用）
+  setDatabase(db: DatabaseAdapter) {
+    this.database = new TrainingMenuDatabase(db)
+  }
+
   // ユーザーIDを設定
   setCurrentUser(userId: string) {
     this.currentUserId = userId
